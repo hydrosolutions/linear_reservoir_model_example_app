@@ -9,7 +9,7 @@ server <- function(input, output) {
   experiment_table <- tsibble(`Time [s]` = seq(1,11,1),
                               `V [g]` = c(0,29,82,137,184,221,250,268,275, 275, 275),
                               index = `Time [s]`) %>%
-    mutate(`Q [ml/s]` = c(0, diff(`V [g]`)))
+    mutate(`Qm [ml/s]` = c(0, diff(`V [g]`)))
 
   reactive_table <- reactiveValues()
 
@@ -23,7 +23,7 @@ server <- function(input, output) {
       else
         experiment_table <- reactive_table[["DF"]]
     }
-    experiment_table$`Q [ml/s]` <- c(0, diff(experiment_table$`V [g]`))
+    experiment_table$`Qm [ml/s]` <- c(0, diff(experiment_table$`V [g]`))
     reactive_table[["DF"]] <- experiment_table
   })
 
@@ -32,7 +32,7 @@ server <- function(input, output) {
     rhandsontable(data2show) %>%
       hot_col(col = "Time [s]", readOnly = TRUE) %>%
       hot_validate_numeric(col = "V [g]", min = 0, max = 10000) %>%
-      hot_col(col = "Q [ml/s]", readOnly = TRUE)
+      hot_col(col = "Qm [ml/s]", readOnly = TRUE)
   })
 
   output$distPlot <- renderPlot({
@@ -57,12 +57,17 @@ server <- function(input, output) {
 
     colSums(measurements)
 
+    colour_library <- c("R" = "blue", "Q" = "gray40", "Qm" = "black")
+
     ggplot(measurements) +
-      geom_col(aes(second, R), fill = "blue", alpha = 0.8) +
-      geom_col(aes(second, Q), alpha = 0.8) +
-      geom_point(data = data2show, aes(`Time [s]`, `Q [ml/s]`)) +
-      labs(x = "Time [s]", y = "Recharge (blue), Discharge (grey) [ml]") +
-      theme_bw()
+      geom_col(aes(second, R, fill = "R"), alpha = 0.8) +
+      geom_col(aes(second, Q, fill = "Q"), alpha = 0.8) +
+      geom_point(data = data2show, aes(`Time [s]`, `Qm [ml/s]`, colour = "Qm")) +
+      labs(x = "Time [s]", y = "Flux [ml]") +
+      scale_colour_manual(name = "Measurement", values = colour_library) +
+      scale_fill_manual(name = "Simulation", values = colour_library) +
+      theme_bw() +
+      theme(legend.position = c(0.85, 0.8))
   })
 }
 
