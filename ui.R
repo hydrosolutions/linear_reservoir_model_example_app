@@ -4,11 +4,12 @@ ui <- fluidPage(
   sidebarLayout(
     sidebarPanel(
       sliderInput("k", "Storage coefficient k:", 0.2, min = 0.1, max = 1),
-      rHandsontableOutput("dataTable")
+      h5("Measured discharge"),
+      rHandsontableOutput("dataTable", height = "90px")
     ),
     mainPanel(
-      withMathJax("$$(R-Q) \\cdot dt = k \\cdot dQ$$"),
-      plotOutput(outputId = "distPlot")
+      h5("Simulated and measured discharge"),
+      plotOutput(outputId = "distPlot"),
     )
   )
 )
